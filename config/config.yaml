@@ -1,0 +1,11 @@
+audio:
+  chunk_size: 1024
+  sample_rate: 16000
+  channels: 1
+  record_seconds: 5
+
+paths:
+  audio_output: audio/
+  screenshots: screenshots/
+  recordings: screen_recordings/
+  models: models/

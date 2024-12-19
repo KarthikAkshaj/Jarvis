@@ -1,0 +1,36 @@
+[tool.poetry]
+name = "jarvis"
+version = "0.1.0"
+description = ""
+authors = ["N.Karthik Akshaj <akshajnk@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10,<3.12"
+pyaudio = "^0.2.14"
+google-generativeai = "^0.8.2"
+vosk = "^0.3.45"
+pygame = "^2.6.1"
+requests = "^2.32.3"
+pyautogui = "^0.9.54"
+opencv-python = "^4.10.0.84"
+python-dotenv = "^1.0.0"
+edge-tts = "^6.1.9"
+pvporcupine = "^2.2.1"
+numpy = ">=1.19.0,<2.0.0"
+sounddevice = "^0.4.6"
+wave = "^0.0.2"
+webrtcvad = "^2.0.10"
+pyyaml = "^6.0.1"
+fernet = "^1.0.1"
+cryptography = "^44.0.0"
+ratelimit = "^2.2.1"
+pytest = "^8.3.4"
+mypy = "^1.13.0"
+bandit = "^1.8.0"
+safety = "^3.2.13"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
