@@ -443,6 +443,17 @@ files = [
 ]
 
 [[package]]
+name = "comtypes"
+version = "1.4.8"
+description = "Pure Python COM package"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "comtypes-1.4.8-py3-none-any.whl", hash = "sha256:773109b12aa0bec630d5b2272dd983cbaa25605a12fc1319f99730c9d0b72f79"},
+    {file = "comtypes-1.4.8.zip", hash = "sha256:bb2286cfb3b96f838307200a85b00b98e1bdebf1e58ec3c28b36b1ccfafac01f"},
+]
+
+[[package]]
 name = "cryptography"
 version = "44.0.0"
 description = "cryptography is a package which provides cryptographic recipes and primitives to Python developers."
@@ -1710,6 +1721,21 @@ python3-Xlib = {version = "*", markers = "platform_system == \"Linux\" and pytho
 pytweening = ">=1.0.4"
 
 [[package]]
+name = "pycaw"
+version = "20240210"
+description = "Python Core Audio Windows Library"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pycaw-20240210-py3-none-any.whl", hash = "sha256:fbbe0ee67a7d32714240e26913266a386ae4375778c417a7e8ad6076eca62f1e"},
+    {file = "pycaw-20240210.tar.gz", hash = "sha256:55e49359e9f227053f4fa15817a02d4a7bc52fc3db32e123894719a123c41d06"},
+]
+
+[package.dependencies]
+comtypes = "*"
+psutil = "*"
+
+[[package]]
 name = "pycparser"
 version = "2.22"
 description = "C parser in Python"
@@ -2033,6 +2059,20 @@ files = [
 ]
 
 [[package]]
+name = "pypiwin32"
+version = "223"
+description = ""
+optional = false
+python-versions = "*"
+files = [
+    {file = "pypiwin32-223-py3-none-any.whl", hash = "sha256:67adf399debc1d5d14dffc1ab5acacb800da569754fafdc576b2a039485aa775"},
+    {file = "pypiwin32-223.tar.gz", hash = "sha256:71be40c1fbd28594214ecaecb58e7aa8b708eabfa0125c8a109ebd51edbd776a"},
+]
+
+[package.dependencies]
+pywin32 = ">=223"
+
+[[package]]
 name = "pyrect"
 version = "0.2.0"
 description = "PyRect is a simple module with a Rect class for Pygame-like rectangular areas."
@@ -2112,6 +2152,33 @@ optional = false
 python-versions = "*"
 files = [
     {file = "pytweening-1.2.0.tar.gz", hash = "sha256:243318b7736698066c5f362ec5c2b6434ecf4297c3c8e7caa8abfe6af4cac71b"},
+]
+
+[[package]]
+name = "pywin32"
+version = "308"
+description = "Python for Window Extensions"
+optional = false
+python-versions = "*"
+files = [
+    {file = "pywin32-308-cp310-cp310-win32.whl", hash = "sha256:796ff4426437896550d2981b9c2ac0ffd75238ad9ea2d3bfa67a1abd546d262e"},
+    {file = "pywin32-308-cp310-cp310-win_amd64.whl", hash = "sha256:4fc888c59b3c0bef905ce7eb7e2106a07712015ea1c8234b703a088d46110e8e"},
+    {file = "pywin32-308-cp310-cp310-win_arm64.whl", hash = "sha256:a5ab5381813b40f264fa3495b98af850098f814a25a63589a8e9eb12560f450c"},
+    {file = "pywin32-308-cp311-cp311-win32.whl", hash = "sha256:5d8c8015b24a7d6855b1550d8e660d8daa09983c80e5daf89a273e5c6fb5095a"},
+    {file = "pywin32-308-cp311-cp311-win_amd64.whl", hash = "sha256:575621b90f0dc2695fec346b2d6302faebd4f0f45c05ea29404cefe35d89442b"},
+    {file = "pywin32-308-cp311-cp311-win_arm64.whl", hash = "sha256:100a5442b7332070983c4cd03f2e906a5648a5104b8a7f50175f7906efd16bb6"},
+    {file = "pywin32-308-cp312-cp312-win32.whl", hash = "sha256:587f3e19696f4bf96fde9d8a57cec74a57021ad5f204c9e627e15c33ff568897"},
+    {file = "pywin32-308-cp312-cp312-win_amd64.whl", hash = "sha256:00b3e11ef09ede56c6a43c71f2d31857cf7c54b0ab6e78ac659497abd2834f47"},
+    {file = "pywin32-308-cp312-cp312-win_arm64.whl", hash = "sha256:9b4de86c8d909aed15b7011182c8cab38c8850de36e6afb1f0db22b8959e3091"},
+    {file = "pywin32-308-cp313-cp313-win32.whl", hash = "sha256:1c44539a37a5b7b21d02ab34e6a4d314e0788f1690d65b48e9b0b89f31abbbed"},
+    {file = "pywin32-308-cp313-cp313-win_amd64.whl", hash = "sha256:fd380990e792eaf6827fcb7e187b2b4b1cede0585e3d0c9e84201ec27b9905e4"},
+    {file = "pywin32-308-cp313-cp313-win_arm64.whl", hash = "sha256:ef313c46d4c18dfb82a2431e3051ac8f112ccee1a34f29c263c583c568db63cd"},
+    {file = "pywin32-308-cp37-cp37m-win32.whl", hash = "sha256:1f696ab352a2ddd63bd07430080dd598e6369152ea13a25ebcdd2f503a38f1ff"},
+    {file = "pywin32-308-cp37-cp37m-win_amd64.whl", hash = "sha256:13dcb914ed4347019fbec6697a01a0aec61019c1046c2b905410d197856326a6"},
+    {file = "pywin32-308-cp38-cp38-win32.whl", hash = "sha256:5794e764ebcabf4ff08c555b31bd348c9025929371763b2183172ff4708152f0"},
+    {file = "pywin32-308-cp38-cp38-win_amd64.whl", hash = "sha256:3b92622e29d651c6b783e368ba7d6722b1634b8e70bd376fd7610fe1992e19de"},
+    {file = "pywin32-308-cp39-cp39-win32.whl", hash = "sha256:7873ca4dc60ab3287919881a7d4f88baee4a6e639aa6962de25a98ba6b193341"},
+    {file = "pywin32-308-cp39-cp39-win_amd64.whl", hash = "sha256:71b3322d949b4cc20776436a9c9ba0eeedcbc9c650daa536df63f0ff111bb920"},
 ]
 
 [[package]]
@@ -2380,6 +2447,28 @@ packaging = ">=21.0"
 pydantic = ">=2.6.0,<2.10.0"
 ruamel-yaml = ">=0.17.21"
 typing-extensions = ">=4.7.1"
+
+[[package]]
+name = "screen-brightness-control"
+version = "0.24.1"
+description = "A Python tool for controlling the brightness of your monitor"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "screen_brightness_control-0.24.1-py3-none-any.whl", hash = "sha256:3c5af335704c52ebcc4641ea02092e4f887cfeae16c386e89ad882ddb48e5343"},
+    {file = "screen_brightness_control-0.24.1.tar.gz", hash = "sha256:08e950c82bda957193b4757312af2fc326f867605e69353f0a051bc334b84b13"},
+]
+
+[package.dependencies]
+pypiwin32 = {version = "*", markers = "platform_system == \"Windows\""}
+pywin32 = {version = "*", markers = "platform_system == \"Windows\""}
+wmi = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+all = ["screen-brightness-control[dev,dist,docs]"]
+dev = ["flake8", "mypy", "pytest", "pytest-mock", "pytest-subtests", "types-pywin32"]
+dist = ["build", "setuptools", "twine", "wheel"]
+docs = ["jsmin", "packaging", "pdoc (>=14.1.0)"]
 
 [[package]]
 name = "setuptools"
@@ -2697,6 +2786,27 @@ files = [
 ]
 
 [[package]]
+name = "wmi"
+version = "1.5.1"
+description = "Windows Management Instrumentation"
+optional = false
+python-versions = "*"
+files = [
+    {file = "WMI-1.5.1-py2.py3-none-any.whl", hash = "sha256:1d6b085e5c445141c475476000b661f60fff1aaa19f76bf82b7abb92e0ff4942"},
+    {file = "WMI-1.5.1.tar.gz", hash = "sha256:b6a6be5711b1b6c8d55bda7a8befd75c48c12b770b9d227d31c1737dbf0d40a6"},
+]
+
+[package.dependencies]
+pywin32 = "*"
+
+[package.extras]
+all = ["pytest", "sphinx", "twine", "wheel"]
+dev = ["pytest", "sphinx", "twine", "wheel"]
+docs = ["sphinx"]
+package = ["twine", "wheel"]
+tests = ["pytest"]
+
+[[package]]
 name = "yarl"
 version = "1.18.3"
 description = "Yet another URL library"
@@ -2795,4 +2905,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10,<3.12"
-content-hash = "da85f254e2a06f69122c0ffb0e3f848df08cfb4ca3adedc66847c758d6a774f8"
+content-hash = "8991ebdd12a2f4f3464c2edddec8fe4513b82d37c4d5a822622e0d249f43e062"

@@ -2,19 +2,32 @@ import subprocess
 import pygame
 import asyncio
 import webbrowser
-from typing import Dict, Callable, Optional
+from typing import Dict, Optional
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from functools import partial
+
 from chatbot.chatbot import ChatBot
-from commands.generate_image_command import handle_generate_image_command
+from commands import search_command
+from commands import play_command
+from commands import open_command
+from commands.open_command import OpenCommand
+from commands.play_command import PlayCommand
+from commands.search_command import SearchCommand, parse_search_command
+from commands.generate_image_command import (
+    GenerateImageCommand,
+    handle_generate_image_command,
+)
 from commands.screen_recording_command import ScreenRecorder
-from commands.search_command import parse_search_command
-from commands.take_screenshot_command import handle_take_screenshot_command
+from commands.take_screenshot_command import ScreenshotCommand
+from commands.weather_command import WeatherCommand
+from commands.time_management import ReminderCommand, TimerCommand
 from config.config_manager import ConfigManager
 from text_to_speech.text_to_speech import TextToSpeech
+from commands.system_controls.volume_control import VolumeController
+from commands.system_controls.brightness_control import BrightnessController
+from commands.system_controls.system_command import SystemController
 
 
 @dataclass
@@ -33,70 +46,6 @@ class Command(ABC):
     @abstractmethod
     async def execute(self, context: CommandContext) -> str:
         pass
-
-
-class OpenCommand(Command):
-    async def execute(self, context: CommandContext) -> str:
-        app_name = context.transcription.lower().split("open", 1)[1].strip()
-        if not app_name:
-            await context.tts.speak("Please specify the application to open.")
-            return "continue"
-
-        try:
-            subprocess.Popen(app_name)
-            await context.tts.speak(f"Opening {app_name}.")
-            return "continue"
-        except Exception as e:
-            logging.error(f"Failed to open {app_name}: {e}")
-            await context.tts.speak(f"Sorry, I couldn't open {app_name}.")
-            return "continue"
-
-
-class PlayCommand(Command):
-    async def execute(self, context: CommandContext) -> str:
-        song_name = context.transcription.lower().split("play", 1)[1].strip()
-        if not song_name:
-            await context.tts.speak("Please specify the song to play.")
-            return "continue"
-
-        try:
-            pygame.mixer.init()
-            pygame.mixer.music.load(f"audio/{song_name}.mp3")
-            pygame.mixer.music.play()
-            await context.tts.speak(f"Playing {song_name}.")
-            return "continue"
-        except Exception as e:
-            logging.error(f"Failed to play {song_name}: {e}")
-            await context.tts.speak(f"Sorry, I couldn't play {song_name}.")
-            return "continue"
-
-
-class GenerateImageCommand(Command):
-    async def execute(self, context: CommandContext) -> str:
-        prompt = context.transcription.lower().split("generate image", 1)[1].strip()
-        if not prompt:
-            await context.tts.speak("Please provide a description for the image.")
-            return "continue"
-
-        try:
-            # Assuming handle_generate_image_command is updated to be async
-            await handle_generate_image_command(prompt, context.tts)
-            return "continue"
-        except Exception as e:
-            logging.error(f"Failed to generate image: {e}")
-            await context.tts.speak("Sorry, I couldn't generate the image.")
-            return "continue"
-
-
-class ScreenshotCommand(Command):
-    async def execute(self, context: CommandContext) -> str:
-        try:
-            await handle_take_screenshot_command(context.tts)
-            return "continue"
-        except Exception as e:
-            logging.error(f"Failed to take screenshot: {e}")
-            await context.tts.speak("Sorry, I couldn't take the screenshot.")
-            return "continue"
 
 
 class StartRecordingCommand(Command):
@@ -121,6 +70,38 @@ class StopRecordingCommand(Command):
             return "continue"
 
 
+class OpenCommand(Command):
+    async def execute(self, context: CommandContext) -> str:
+        app_name = context.transcription.lower().split("open", 1)[1].strip()
+        if not app_name:
+            await context.tts.speak("Please specify the application to open.")
+            return "continue"
+
+        try:
+            open_command.handle_open_command(app_name, context.tts)
+            return "continue"
+        except Exception as e:
+            logging.error(f"Failed to open {app_name}: {e}")
+            await context.tts.speak(f"Sorry, I couldn't open {app_name}.")
+            return "continue"
+
+
+class PlayCommand(Command):
+    async def execute(self, context: CommandContext) -> str:
+        song_name = context.transcription.lower().split("play", 1)[1].strip()
+        if not song_name:
+            await context.tts.speak("Please specify the song to play.")
+            return "continue"
+
+        try:
+            play_command.handle_play_command(song_name, context.tts)
+            return "continue"
+        except Exception as e:
+            logging.error(f"Failed to play {song_name}: {e}")
+            await context.tts.speak(f"Sorry, I couldn't play {song_name}.")
+            return "continue"
+
+
 class SearchCommand(Command):
     async def execute(self, context: CommandContext) -> str:
         try:
@@ -128,13 +109,142 @@ class SearchCommand(Command):
             if search_result:
                 item, app = search_result
                 if app.lower() == "google":
-                    url = f"https://www.google.com/search?q={item}"
-                    webbrowser.open(url)
-                    await context.tts.speak(f"Searching for {item} in Google.")
+                    search_command.handle_search_command(item, app, context.tts)
             return "continue"
         except Exception as e:
             logging.error(f"Failed to perform search: {e}")
             await context.tts.speak("Sorry, I couldn't perform the search.")
+            return "continue"
+
+
+class GenerateImageCommand(Command):
+    async def execute(self, context: CommandContext) -> str:
+        prompt = context.transcription.lower().split("generate image", 1)[1].strip()
+        if not prompt:
+            await context.tts.speak("Please provide a description for the image.")
+            return "continue"
+
+        try:
+            handle_generate_image_command(prompt, context.tts)
+            return "continue"
+        except Exception as e:
+            logging.error(f"Failed to generate image: {e}")
+            await context.tts.speak("Sorry, I couldn't generate the image.")
+            return "continue"
+
+
+class SystemControlCommand(Command):
+    async def execute(self, context: CommandContext) -> str:
+        from commands.system_controls.system_command import SystemController
+
+        command = context.transcription.lower()
+        controller = SystemController()
+
+        try:
+            if "shutdown" in command:
+                # Parse delay if specified
+                delay = 0
+                if "in" in command or "after" in command:
+                    try:
+                        delay = int("".join(filter(str.isdigit, command)))
+                    except:
+                        delay = 0
+                controller.shutdown(delay)
+                await context.tts.speak(
+                    f"Shutting down system{' in '+str(delay)+' minutes' if delay else ''}."
+                )
+            elif "restart" in command or "reboot" in command:
+                controller.restart()
+                await context.tts.speak("Restarting system.")
+            elif "sleep" in command:
+                controller.sleep()
+                await context.tts.speak("Putting system to sleep.")
+            elif "lock" in command:
+                controller.lock_screen()
+                await context.tts.speak("Locking screen.")
+            return "continue"
+        except Exception as e:
+            logging.error(f"Error executing system command: {e}")
+            await context.tts.speak("Sorry, I couldn't execute that system command.")
+            return "continue"
+
+
+class VolumeCommand(Command):
+    async def execute(self, context: CommandContext) -> str:
+        from commands.system_controls.volume_control import VolumeController
+
+        command = context.transcription.lower()
+        controller = VolumeController()
+
+        try:
+            if "mute" in command:
+                controller.mute()
+                await context.tts.speak("Audio muted.")
+            elif "unmute" in command:
+                controller.unmute()
+                await context.tts.speak("Audio unmuted.")
+            elif "volume" in command:
+                if "up" in command or "increase" in command:
+                    controller.adjust_volume(10)
+                    await context.tts.speak("Volume increased.")
+                elif "down" in command or "decrease" in command:
+                    controller.adjust_volume(-10)
+                    await context.tts.speak("Volume decreased.")
+                else:
+                    try:
+                        volume = int("".join(filter(str.isdigit, command)))
+                        controller.set_volume(volume)
+                        await context.tts.speak(f"Volume set to {volume} percent.")
+                    except:
+                        current = controller.get_volume()
+                        await context.tts.speak(f"Current volume is {current} percent.")
+            return "continue"
+        except Exception as e:
+            logging.error(f"Error controlling volume: {e}")
+            await context.tts.speak("Sorry, I couldn't control the volume.")
+            return "continue"
+
+
+class BrightnessCommand(Command):
+    async def execute(self, context: CommandContext) -> str:
+
+        command = context.transcription.lower()
+        controller = BrightnessController()
+
+        try:
+            if "increase" in command or "up" in command:
+                controller.adjust_brightness(10)
+                await context.tts.speak("Brightness increased.")
+            elif "decrease" in command or "down" in command:
+                controller.adjust_brightness(-10)
+                await context.tts.speak("Brightness decreased.")
+            else:
+                try:
+                    level = int("".join(filter(str.isdigit, command)))
+                    controller.set_brightness(level)
+                    await context.tts.speak(f"Brightness set to {level} percent.")
+                except:
+                    current = controller.get_brightness()
+                    await context.tts.speak(f"Current brightness is {current} percent.")
+            return "continue"
+        except Exception as e:
+            logging.error(f"Error controlling brightness: {e}")
+            await context.tts.speak("Sorry, I couldn't control the brightness.")
+            return "continue"
+
+
+class CalendarCommand(Command):
+    async def execute(self, context: CommandContext) -> str:
+        from commands.calendar.event_handler import EventHandler
+
+        try:
+            handler = EventHandler()
+            response = handler.process_event_command(context.transcription)
+            await context.tts.speak(response)
+            return "continue"
+        except Exception as e:
+            logging.error(f"Error handling calendar command: {e}")
+            await context.tts.speak("Sorry, I couldn't process that calendar command.")
             return "continue"
 
 
@@ -155,6 +265,15 @@ class CommandHandler:
             "start recording": StartRecordingCommand(),
             "stop recording": StopRecordingCommand(),
             "search for": SearchCommand(),
+            "weather": WeatherCommand(),
+            "forecast": WeatherCommand(),
+            "remind": ReminderCommand(),
+            "list reminders": ReminderCommand(),
+            "timer": TimerCommand(),
+            "list timers": TimerCommand(),
+            "calendar": CalendarCommand(),
+            "schedule": CalendarCommand(),
+            "event": CalendarCommand(),
         }
 
         # Add dynamic command aliases
@@ -169,6 +288,18 @@ class CommandHandler:
             "end recording": "stop recording",
             "look up": "search for",
             "find": "search for",
+            "set a timer": "timer",
+            "set timer": "timer",
+            "show reminders": "list reminders",
+            "show timers": "list timers",
+            "check weather": "weather",
+            "weather forecast": "forecast",
+            "add event": "event",
+            "new event": "event",
+            "show events": "calendar",
+            "list events": "calendar",
+            "delete event": "event",
+            "remove event": "event",
         }
 
     def _create_context(self, transcription: str) -> CommandContext:
