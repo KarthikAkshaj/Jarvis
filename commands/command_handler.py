@@ -9,31 +9,29 @@ import logging
 from concurrent.futures import ThreadPoolExecutor
 
 from chatbot.chatbot import ChatBot
-from commands import search_command
-from commands import play_command
 from commands import open_command
-from commands.open_command import OpenCommand
-from commands.play_command import PlayCommand
-from commands.search_command import SearchCommand, parse_search_command
-from commands.generate_image_command import (
-    GenerateImageCommand,
-    handle_generate_image_command,
-)
+from commands import play_command
+from commands import search_command
+from commands.open_command import handle_open_command
+from commands.play_command import handle_play_command
+from commands.search_command import  parse_search_command
+from commands.generate_image_command import handle_generate_image_command
 from commands.screen_recording_command import ScreenRecorder
-from commands.take_screenshot_command import ScreenshotCommand
-from commands.weather_command import WeatherCommand
-from commands.time_management import ReminderCommand, TimerCommand
+from commands.take_screenshot_command import handle_take_screenshot_command
+from commands.weather_command import WeatherSystem
+from commands.time_management import ReminderSystem  
 from config.config_manager import ConfigManager
 from text_to_speech.text_to_speech import TextToSpeech
 from commands.system_controls.volume_control import VolumeController
 from commands.system_controls.brightness_control import BrightnessController
 from commands.system_controls.system_command import SystemController
+from commands.calendar.event_handler import EventHandler
+from commands.notes.note_manager import NoteManager
+from commands.notes.voice_memo import VoiceMemoRecorder
 
 
 @dataclass
 class CommandContext:
-    """Context object containing all necessary dependencies for command execution"""
-
     transcription: str
     tts: "TextToSpeech"
     chatbot: Optional["ChatBot"] = None
@@ -105,7 +103,7 @@ class PlayCommand(Command):
 class SearchCommand(Command):
     async def execute(self, context: CommandContext) -> str:
         try:
-            search_result = parse_search_command(context.transcription)
+            search_result = SearchCommand(context.transcription)
             if search_result:
                 item, app = search_result
                 if app.lower() == "google":
@@ -248,6 +246,102 @@ class CalendarCommand(Command):
             return "continue"
 
 
+class NoteCommand(Command):
+    async def execute(self, context: CommandContext) -> str:
+        from commands.notes.note_manager import NoteManager
+
+        command = context.transcription.lower()
+        manager = NoteManager()
+
+        try:
+            if "take note" in command or "add note" in command:
+                content = command.split("note", 1)[1].strip()
+                if not content:
+                    await context.tts.speak("What would you like to note down?")
+                    return "continue"
+
+                result = manager.add_note(content)
+                await context.tts.speak(result)
+
+            elif "list notes" in command or "show notes" in command:
+                notes = manager.get_notes()
+                response = manager.format_notes_response(notes)
+                await context.tts.speak(response)
+
+            elif "search notes" in command:
+                query = command.split("search notes", 1)[1].strip()
+                notes = manager.search_notes(query)
+                response = manager.format_notes_response(notes)
+                await context.tts.speak(response)
+
+            elif "export notes" in command:
+                format = "txt" if "text" in command else "json"
+                result = manager.export_notes(format)
+                await context.tts.speak(result)
+
+            return "continue"
+
+        except Exception as e:
+            logging.error(f"Error handling note command: {e}")
+            await context.tts.speak("Sorry, I couldn't process that note command.")
+            return "continue"
+
+
+class VoiceMemoCommand(Command):
+    def __init__(self):
+        self.recorder = None
+        self.current_stream = None
+        self.current_filename = None
+
+    async def execute(self, context: CommandContext) -> str:
+        from commands.notes.voice_memo import VoiceMemoRecorder
+
+        command = context.transcription.lower()
+
+        try:
+            if "start voice memo" in command:
+                if not self.recorder:
+                    self.recorder = VoiceMemoRecorder()
+                self.current_filename, self.current_stream = (
+                    self.recorder.start_recording()
+                )
+                await context.tts.speak("Starting voice memo recording")
+
+            elif "stop voice memo" in command:
+                if self.recorder and self.current_stream:
+                    self.recorder.stop_recording(
+                        self.current_filename, self.current_stream
+                    )
+                    await context.tts.speak("Voice memo saved")
+                    self.current_stream = None
+
+            elif "play voice memo" in command:
+                if not self.recorder:
+                    self.recorder = VoiceMemoRecorder()
+                memos = self.recorder.list_memos()
+                if memos:
+                    self.recorder.play_memo(str(memos[-1]))  # Play latest memo
+                    await context.tts.speak("Playing voice memo")
+                else:
+                    await context.tts.speak("No voice memos found")
+
+            elif "list voice memos" in command:
+                if not self.recorder:
+                    self.recorder = VoiceMemoRecorder()
+                memos = self.recorder.list_memos()
+                memo_count = len(memos)
+                await context.tts.speak(f"You have {memo_count} voice memos")
+
+            return "continue"
+
+        except Exception as e:
+            logging.error(f"Error handling voice memo command: {e}")
+            await context.tts.speak(
+                "Sorry, I couldn't process that voice memo command."
+            )
+            return "continue"
+
+
 class CommandHandler:
     def __init__(self, config_manager=None):
         self.config = config_manager
@@ -261,19 +355,21 @@ class CommandHandler:
             "open": OpenCommand(),
             "play": PlayCommand(),
             "generate image": GenerateImageCommand(),
-            "take screenshot": ScreenshotCommand(),
+            "take screenshot": handle_take_screenshot_command(),
             "start recording": StartRecordingCommand(),
             "stop recording": StopRecordingCommand(),
             "search for": SearchCommand(),
-            "weather": WeatherCommand(),
-            "forecast": WeatherCommand(),
-            "remind": ReminderCommand(),
-            "list reminders": ReminderCommand(),
-            "timer": TimerCommand(),
-            "list timers": TimerCommand(),
+            "weather": WeatherSystem(),
+            "forecast": WeatherSystem(),
+            "remind": ReminderSystem(),
+            "list reminders": ReminderSystem(),
+            "timer": ReminderSystem(),
+            "list timers": ReminderSystem(),
             "calendar": CalendarCommand(),
             "schedule": CalendarCommand(),
             "event": CalendarCommand(),
+            "note": NoteCommand(),
+            "voice memo": VoiceMemoCommand(),
         }
 
         # Add dynamic command aliases
@@ -300,6 +396,15 @@ class CommandHandler:
             "list events": "calendar",
             "delete event": "event",
             "remove event": "event",
+            "take note": "note",
+            "add note": "note",
+            "list notes": "note",
+            "show notes": "note",
+            "search notes": "note",
+            "start recording memo": "voice memo",
+            "stop recording memo": "voice memo",
+            "play memo": "voice memo",
+            "list memos": "voice memo",
         }
 
     def _create_context(self, transcription: str) -> CommandContext:

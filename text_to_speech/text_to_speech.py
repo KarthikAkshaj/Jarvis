@@ -10,7 +10,7 @@ class TextToSpeech:
             model_name = "tts_models/en/ljspeech/tacotron2-DDC"
             self.tts = TTS(model_name=model_name, progress_bar=False)
             self.sample_rate = 22050
-            self._lock = asyncio.Lock()  # Use asyncio Lock instead of threading.Lock
+            self._lock = asyncio.Lock()
         except Exception as e:
             print(f"Error initializing TTS: {str(e)}")
             raise
@@ -20,14 +20,13 @@ class TextToSpeech:
             return
 
         try:
-            async with self._lock:  # Use async context manager
-                # Generate audio
+            async with self._lock:
+
                 audio = self.tts.tts(text=text)
                 audio_array = np.array(audio)
 
-                # Play the entire audio at once
                 sd.play(audio_array, samplerate=self.sample_rate)
-                sd.wait()  # Wait until audio is finished playing
+                sd.wait()
 
         except Exception as e:
             print(f"Error in TTS speak: {str(e)}")
@@ -38,13 +37,12 @@ class TextToSpeech:
             return
 
         try:
-            # Generate audio
+
             audio = self.tts.tts(text=text)
             audio_array = np.array(audio)
 
-            # Play the entire audio at once
             sd.play(audio_array, samplerate=self.sample_rate)
-            sd.wait()  # Wait until audio is finished playing
+            sd.wait()
 
         except Exception as e:
             print(f"Error in TTS speak: {str(e)}")
