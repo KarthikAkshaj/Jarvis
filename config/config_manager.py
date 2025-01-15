@@ -173,7 +173,7 @@ class ConfigManager:
             return default
 
     def set(self, key: str, value: Any, save_to_preferences: bool = False) -> bool:
-        """Set configuration value"""
+        "Set configuration value"
         try:
             keys = key.split(".")
 
@@ -186,7 +186,6 @@ class ConfigManager:
                 current = current.setdefault(k, {})
             current[keys[-1]] = value
 
-            # Update cache
             self.settings_cache[key] = value
 
             # Save to appropriate file
